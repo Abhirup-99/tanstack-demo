@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -60,7 +60,7 @@ export default function VirtualizedTable() {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     enableColumnResizing: true,
-    columnResizeMode: "onChange",
+    columnResizeMode: "onEnd",
     columnResizeDirection: "ltr",
     state: {
       sorting,
@@ -140,27 +140,6 @@ export default function VirtualizedTable() {
     ),
     overscan: 5,
   });
-
-  // Force column virtualizer to recalculate when any column is being resized
-  const hasResizingColumn = organizedColumns.all.some((col) =>
-    col.getIsResizing()
-  );
-
-  // Recalculate virtualizer when columns are resized
-  useEffect(() => {
-    if (hasResizingColumn) {
-      columnVirtualizer.measure();
-    }
-  }, [hasResizingColumn, columnVirtualizer]);
-
-  // Add global resizing class for visual feedback
-  useEffect(() => {
-    if (hasResizingColumn && tableContainerRef.current) {
-      tableContainerRef.current.classList.add("resizing");
-    } else if (tableContainerRef.current) {
-      tableContainerRef.current.classList.remove("resizing");
-    }
-  }, [hasResizingColumn]);
 
   // Get virtual items
   const virtualRows = rowVirtualizer.getVirtualItems();
