@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -9,6 +9,7 @@ import {
   type ColumnFiltersState,
   type VisibilityState,
   type ColumnOrderState,
+  type ColumnSizingState,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
@@ -39,6 +40,7 @@ export default function VirtualizedTable() {
     left: [],
     right: [],
   });
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
 
   // Get columns from hook
@@ -60,7 +62,7 @@ export default function VirtualizedTable() {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     enableColumnResizing: true,
-    columnResizeMode: "onEnd",
+    columnResizeMode: "onChange",
     columnResizeDirection: "ltr",
     state: {
       sorting,
@@ -69,6 +71,7 @@ export default function VirtualizedTable() {
       columnVisibility,
       columnOrder,
       columnPinning,
+      columnSizing,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -76,6 +79,7 @@ export default function VirtualizedTable() {
     onColumnVisibilityChange: setColumnVisibility,
     onColumnOrderChange: setColumnOrder,
     onColumnPinningChange: setColumnPinning,
+    onColumnSizingChange: setColumnSizing,
     defaultColumn: {
       minSize: 40,
       maxSize: 400,
@@ -134,7 +138,8 @@ export default function VirtualizedTable() {
     estimateSize: useCallback(
       (index: number) => {
         const column = organizedColumns.center[index];
-        return column?.getSize() || 150;
+        const size = column?.getSize() || 150;
+        return size;
       },
       [organizedColumns.center]
     ),
@@ -144,6 +149,11 @@ export default function VirtualizedTable() {
   // Get virtual items
   const virtualRows = rowVirtualizer.getVirtualItems();
   const virtualColumns = columnVirtualizer.getVirtualItems();
+
+  // Force column virtualizer to remeasure when column sizing changes
+  useEffect(() => {
+    columnVirtualizer.measure();
+  }, [columnSizing, columnVirtualizer]);
 
   // Calculate widths for pinned columns
   const leftPinnedWidth = organizedColumns.left.reduce(
