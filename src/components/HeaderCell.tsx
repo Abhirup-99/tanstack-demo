@@ -21,10 +21,11 @@ export function HeaderCell({
   const [isResizing, setIsResizing] = useState(false);
 
   return (
-    <div
+    <th
       className="header-cell"
       style={{
         ...style,
+        display: "flex", // Override default th display
         background: isPinned ? "#e3f2fd" : "#f8f9fa",
         borderLeft:
           isPinned === "left"
@@ -150,6 +151,6 @@ export function HeaderCell({
           />
         </div>
       )}
-    </div>
+    </th>
   );
 }

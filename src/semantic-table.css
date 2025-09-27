@@ -1,0 +1,57 @@
+/* Semantic HTML Table with Flexbox Behavior */
+
+/* Reset all table elements to behave like block/flex elements */
+.table-container table {
+  display: block !important;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-container thead {
+  display: block !important;
+}
+
+.table-container tbody {
+  display: block !important;
+}
+
+.table-container tr {
+  display: flex !important;
+  border: none;
+}
+
+.table-container th,
+.table-container td {
+  display: flex !important;
+  align-items: center;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Remove default table styling */
+.table-container th {
+  font-weight: inherit;
+  text-align: inherit;
+  vertical-align: inherit;
+}
+
+.table-container td {
+  vertical-align: inherit;
+}
+
+/* Ensure proper box-sizing */
+.table-container * {
+  box-sizing: border-box;
+}
+
+/* Remove default margins and padding that might interfere */
+.table-container table,
+.table-container thead,
+.table-container tbody,
+.table-container tr,
+.table-container th,
+.table-container td {
+  margin: 0;
+  padding: 0;
+}

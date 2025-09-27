@@ -27,6 +27,7 @@ import { HeaderCell } from "./components/HeaderCell";
 import { ColumnReorderModal } from "./components/ColumnReorderModal";
 import { TableControls } from "./components/TableControls";
 import "./tanstack-table.d.ts";
+import "./semantic-table.css";
 
 export default function VirtualizedTable() {
   // Generate 10,000 rows for demonstration
@@ -209,15 +210,18 @@ export default function VirtualizedTable() {
           overflow: "auto",
         }}
       >
-        <div
+        <table
           style={{
             height: `${totalSize}px`,
             width: `${totalWidth}px`,
             position: "relative",
+            display: "block", // Override default table display
+            borderCollapse: "separate",
+            borderSpacing: 0,
           }}
         >
           {/* Header */}
-          <div
+          <thead
             className="header"
             style={{
               position: "sticky",
@@ -228,168 +232,141 @@ export default function VirtualizedTable() {
               height: "40px",
               width: `${totalWidth}px`,
               minWidth: "100%",
-              display: "flex",
+              display: "block", // Override default thead display
             }}
           >
-            {/* Left Pinned Headers */}
-            {organizedColumns.left.length > 0 && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  zIndex: 12,
-                  background: "#f8f9fa",
-                  width: `${leftPinnedWidth}px`,
-                  height: "40px",
-                  borderRight:
-                    leftPinnedWidth > 0 ? "2px solid #adb5bd" : "none",
-                }}
-              >
-                {organizedColumns.left.map((column, index) => {
-                  const header = table
-                    .getHeaderGroups()[0]
-                    ?.headers.find((h) => h.column.id === column.id);
-                  const leftOffset = organizedColumns.left
-                    .slice(0, index)
-                    .reduce((sum, col) => sum + (col.getSize() || 150), 0);
-
-                  return (
-                    <HeaderCell
-                      key={column.id}
-                      header={header!}
-                      column={column}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: `${leftOffset}px`,
-                        width: `${column.getSize()}px`,
-                        height: "40px",
-                        borderRight: "1px solid #dee2e6",
-                        padding: "8px",
-                        fontSize: "14px",
-                        fontWeight: "bold",
-                        display: "flex",
-                        alignItems: "center",
-                        background: "#f8f9fa",
-                      }}
-                      isPinned="left"
-                      onPin={handlePinColumn}
-                      onUnpin={handleUnpinColumn}
-                    />
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Center Scrollable Headers */}
-            <div
+            <tr
               style={{
-                position: "absolute",
-                top: 0,
-                left: `${leftPinnedWidth}px`,
-                right: `${rightPinnedWidth}px`,
+                display: "flex", // Override default tr display
                 height: "40px",
-                overflow: "hidden",
-                display: "flex",
+                width: `${totalWidth}px`,
+                position: "relative",
               }}
             >
-              {virtualColumns.map((virtualColumn) => {
-                const column = organizedColumns.center[virtualColumn.index];
-                const header = table
-                  .getHeaderGroups()[0]
-                  ?.headers.find((h) => h.column.id === column?.id);
-                console.log(
-                  `Rendering header for column: ${column?.id}, index: ${virtualColumn.index} ${virtualColumn.start}px ${virtualColumn.size}px`
-                );
+            {/* Left Pinned Headers */}
+            {organizedColumns.left.map((column, index) => {
+              const header = table
+                .getHeaderGroups()[0]
+                ?.headers.find((h) => h.column.id === column.id);
+              const leftOffset = organizedColumns.left
+                .slice(0, index)
+                .reduce((sum, col) => sum + (col.getSize() || 150), 0);
 
-                if (!column) return null;
+              return (
+                <HeaderCell
+                  key={column.id}
+                  header={header!}
+                  column={column}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: `${leftOffset}px`,
+                    width: `${column.getSize()}px`,
+                    height: "40px",
+                    borderRight: "1px solid #dee2e6",
+                    padding: "8px",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    background: "#f8f9fa",
+                    zIndex: 12,
+                    borderLeft:
+                      leftPinnedWidth > 0 && index === organizedColumns.left.length - 1
+                        ? "2px solid #adb5bd"
+                        : "none",
+                  }}
+                  isPinned="left"
+                  onPin={handlePinColumn}
+                  onUnpin={handleUnpinColumn}
+                />
+              );
+            })}
 
-                return (
-                  <HeaderCell
-                    key={column.id}
-                    header={header!}
-                    column={column}
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: `${virtualColumn.start}px`,
-                      width: `${virtualColumn.size}px`,
-                      height: "40px",
-                      borderRight: "1px solid #dee2e6",
-                      padding: "8px",
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                      display: "flex",
-                      alignItems: "center",
-                      background: "#f8f9fa",
-                    }}
-                    isPinned={false}
-                    onPin={handlePinColumn}
-                    onUnpin={handleUnpinColumn}
-                  />
-                );
-              })}
-            </div>
+            {/* Center Scrollable Headers */}
+            {virtualColumns.map((virtualColumn) => {
+              const column = organizedColumns.center[virtualColumn.index];
+              const header = table
+                .getHeaderGroups()[0]
+                ?.headers.find((h) => h.column.id === column?.id);
+
+              if (!column) return null;
+
+              return (
+                <HeaderCell
+                  key={column.id}
+                  header={header!}
+                  column={column}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: `${leftPinnedWidth + virtualColumn.start}px`,
+                    width: `${virtualColumn.size}px`,
+                    height: "40px",
+                    borderRight: "1px solid #dee2e6",
+                    padding: "8px",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    background: "#f8f9fa",
+                  }}
+                  isPinned={false}
+                  onPin={handlePinColumn}
+                  onUnpin={handleUnpinColumn}
+                />
+              );
+            })}
 
             {/* Right Pinned Headers */}
-            {organizedColumns.right.length > 0 && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  right: 0,
-                  zIndex: 12,
-                  background: "#f8f9fa",
-                  width: `${rightPinnedWidth}px`,
-                  height: "40px",
-                  borderLeft:
-                    rightPinnedWidth > 0 ? "2px solid #adb5bd" : "none",
-                }}
-              >
-                {organizedColumns.right.map((column, index) => {
-                  const header = table
-                    .getHeaderGroups()[0]
-                    ?.headers.find((h) => h.column.id === column.id);
-                  const rightOffset = organizedColumns.right
-                    .slice(index + 1)
-                    .reduce((sum, col) => sum + (col.getSize() || 150), 0);
+            {organizedColumns.right.map((column, index) => {
+              const header = table
+                .getHeaderGroups()[0]
+                ?.headers.find((h) => h.column.id === column.id);
+              const rightOffset = organizedColumns.right
+                .slice(index + 1)
+                .reduce((sum, col) => sum + (col.getSize() || 150), 0);
 
-                  return (
-                    <HeaderCell
-                      key={column.id}
-                      header={header!}
-                      column={column}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        right: `${rightOffset}px`,
-                        width: `${column.getSize()}px`,
-                        height: "40px",
-                        borderLeft: "1px solid #dee2e6",
-                        padding: "8px",
-                        fontSize: "14px",
-                        fontWeight: "bold",
-                        display: "flex",
-                        alignItems: "center",
-                        background: "#f8f9fa",
-                      }}
-                      isPinned="right"
-                      onPin={handlePinColumn}
-                      onUnpin={handleUnpinColumn}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
+              return (
+                <HeaderCell
+                  key={column.id}
+                  header={header!}
+                  column={column}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    right: `${rightOffset}px`,
+                    width: `${column.getSize()}px`,
+                    height: "40px",
+                    borderLeft: "1px solid #dee2e6",
+                    padding: "8px",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    background: "#f8f9fa",
+                    zIndex: 12,
+                    borderRight:
+                      rightPinnedWidth > 0 && index === 0
+                        ? "2px solid #adb5bd"
+                        : "none",
+                  }}
+                  isPinned="right"
+                  onPin={handlePinColumn}
+                  onUnpin={handleUnpinColumn}
+                />
+              );
+            })}
+            </tr>
+          </thead>
 
           {/* Body */}
-          {virtualRows.map((virtualRow) => {
-            const row = rows[virtualRow.index];
+          <tbody style={{ display: "block" }}>{/* Override default tbody display */}
+            {virtualRows.map((virtualRow) => {
+              const row = rows[virtualRow.index];
 
-            return (
-              <div
+              return (
+              <tr
                 key={row.id}
                 className="row"
                 style={{
@@ -399,172 +376,140 @@ export default function VirtualizedTable() {
                   width: "100%",
                   height: `${virtualRow.size}px`,
                   borderBottom: "1px solid #eee",
-                  display: "flex",
+                  display: "flex", // Override default tr display
                 }}
               >
                 {/* Left Pinned Cells */}
-                {organizedColumns.left.length > 0 && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      zIndex: 9,
-                      background: "#fff",
-                      width: `${leftPinnedWidth}px`,
-                      height: "100%",
-                      borderRight:
-                        leftPinnedWidth > 0 ? "2px solid #adb5bd" : "none",
-                    }}
-                  >
-                    {organizedColumns.left.map((column, index) => {
-                      const cell = row
-                        .getVisibleCells()
-                        .find((c) => c.column.id === column.id);
-                      const leftOffset = organizedColumns.left
-                        .slice(0, index)
-                        .reduce((sum, col) => sum + (col.getSize() || 150), 0);
+                {organizedColumns.left.map((column, index) => {
+                  const cell = row
+                    .getVisibleCells()
+                    .find((c) => c.column.id === column.id);
+                  const leftOffset = organizedColumns.left
+                    .slice(0, index)
+                    .reduce((sum, col) => sum + (col.getSize() || 150), 0);
 
-                      if (!cell) return null;
+                  if (!cell) return null;
 
-                      return (
-                        <div
-                          key={cell.id}
-                          className="cell"
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: `${leftOffset}px`,
-                            width: `${column.getSize()}px`,
-                            height: "100%",
-                            borderRight: "1px solid #eee",
-                            padding: "6px 8px",
-                            fontSize: "13px",
-                            display: "flex",
-                            alignItems: "center",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            background: "#fff",
-                          }}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                  return (
+                    <td
+                      key={cell.id}
+                      className="cell"
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: `${leftOffset}px`,
+                        width: `${column.getSize()}px`,
+                        height: "100%",
+                        borderRight: "1px solid #eee",
+                        padding: "6px 8px",
+                        fontSize: "13px",
+                        display: "flex", // Override default td display
+                        alignItems: "center",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        background: "#fff",
+                        zIndex: 9,
+                        borderLeft:
+                          leftPinnedWidth > 0 && index === organizedColumns.left.length - 1
+                            ? "2px solid #adb5bd"
+                            : "none",
+                      }}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
+                  );
+                })}
 
                 {/* Center Scrollable Cells */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: `${leftPinnedWidth}px`,
-                    right: `${rightPinnedWidth}px`,
-                    height: "100%",
-                    overflow: "hidden",
-                  }}
-                >
-                  {virtualColumns.map((virtualColumn) => {
-                    const column = organizedColumns.center[virtualColumn.index];
-                    const cell = row
-                      .getVisibleCells()
-                      .find((c) => c.column.id === column?.id);
+                {virtualColumns.map((virtualColumn) => {
+                  const column = organizedColumns.center[virtualColumn.index];
+                  const cell = row
+                    .getVisibleCells()
+                    .find((c) => c.column.id === column?.id);
 
-                    if (!cell || !column) return null;
+                  if (!cell || !column) return null;
 
-                    return (
-                      <div
-                        key={cell.id}
-                        className="cell"
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: `${virtualColumn.start}px`,
-                          width: `${virtualColumn.size}px`,
-                          height: "100%",
-                          borderRight: "1px solid #eee",
-                          padding: "6px 8px",
-                          fontSize: "13px",
-                          display: "flex",
-                          alignItems: "center",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                  return (
+                    <td
+                      key={cell.id}
+                      className="cell"
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: `${leftPinnedWidth + virtualColumn.start}px`,
+                        width: `${virtualColumn.size}px`,
+                        height: "100%",
+                        borderRight: "1px solid #eee",
+                        padding: "6px 8px",
+                        fontSize: "13px",
+                        display: "flex", // Override default td display
+                        alignItems: "center",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
+                  );
+                })}
 
                 {/* Right Pinned Cells */}
-                {organizedColumns.right.length > 0 && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      right: 0,
-                      zIndex: 9,
-                      background: "#fff",
-                      width: `${rightPinnedWidth}px`,
-                      height: "100%",
-                      borderLeft:
-                        rightPinnedWidth > 0 ? "2px solid #adb5bd" : "none",
-                    }}
-                  >
-                    {organizedColumns.right.map((column, index) => {
-                      const cell = row
-                        .getVisibleCells()
-                        .find((c) => c.column.id === column.id);
-                      const rightOffset = organizedColumns.right
-                        .slice(index + 1)
-                        .reduce((sum, col) => sum + (col.getSize() || 150), 0);
+                {organizedColumns.right.map((column, index) => {
+                  const cell = row
+                    .getVisibleCells()
+                    .find((c) => c.column.id === column.id);
+                  const rightOffset = organizedColumns.right
+                    .slice(index + 1)
+                    .reduce((sum, col) => sum + (col.getSize() || 150), 0);
 
-                      if (!cell) return null;
+                  if (!cell) return null;
 
-                      return (
-                        <div
-                          key={cell.id}
-                          className="cell"
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            right: `${rightOffset}px`,
-                            width: `${column.getSize()}px`,
-                            height: "100%",
-                            borderLeft: "1px solid #eee",
-                            padding: "6px 8px",
-                            fontSize: "13px",
-                            display: "flex",
-                            alignItems: "center",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            background: "#fff",
-                          }}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+                  return (
+                    <td
+                      key={cell.id}
+                      className="cell"
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        right: `${rightOffset}px`,
+                        width: `${column.getSize()}px`,
+                        height: "100%",
+                        borderLeft: "1px solid #eee",
+                        padding: "6px 8px",
+                        fontSize: "13px",
+                        display: "flex", // Override default td display
+                        alignItems: "center",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        background: "#fff",
+                        zIndex: 9,
+                        borderRight:
+                          rightPinnedWidth > 0 && index === 0
+                            ? "2px solid #adb5bd"
+                            : "none",
+                      }}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
             );
-          })}
-        </div>
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
